@@ -1,0 +1,11 @@
+__pycache__/
+*.pyc
+actuaciones.db
+actuaciones_*.db.bak
+.venv/
+.env
+*.sqlite3
+*.db
+.idea/
+.vscode/
+*.log

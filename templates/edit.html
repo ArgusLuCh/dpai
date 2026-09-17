@@ -1,0 +1,93 @@
+{% extends 'base.html' %}
+{% block content %}
+  <div class="row justify-content-center">
+    <div class="col-md-6">
+      <div class="card">
+        <div class="card-header">Editar actuación{% if es_admin %} - Estado y color{% endif %}</div>
+        <div class="card-body">
+          {% if error %}
+          <div class="alert alert-danger">{{ error }}</div>
+          {% endif %}
+          {% if not es_admin %}
+          <div class="alert alert-info">Podés editar los datos de la actuación. El estado y el color solo los puede cambiar un administrador.</div>
+          {% endif %}
+          <form method="post">
+            <div class="mb-2">
+              <label class="form-label">Número de actuación</label>
+              <input name="numero_actuacion" class="form-control" value="{{ a['numero_actuacion'] }}" required>
+            </div>
+            <div class="mb-2">
+              <label class="form-label">Carátula</label>
+              <input name="caratula" class="form-control" value="{{ a['caratula'] if a['caratula'] else '' }}">
+            </div>
+            <div class="mb-2">
+              <label class="form-label">Fecha del hecho</label>
+              <input type="date" name="fecha_hecho" class="form-control" value="{{ a['fecha_hecho'] if a['fecha_hecho'] else '' }}" required>
+            </div>
+            <div class="mb-2">
+              <label class="form-label">Fecha de registro</label>
+              <input type="date" name="fecha_registro" class="form-control" value="{{ a['fecha_registro'] if a['fecha_registro'] else '' }}" required>
+            </div>
+            <div class="mb-2">
+              <label class="form-label">Dependencia</label>
+              <input name="dependencia" class="form-control" value="{{ a['dependencia'] if a['dependencia'] else '' }}">
+            </div>
+            <div class="mb-2">
+              <label class="form-label">Actuario</label>
+              <input name="actuario" class="form-control" value="{{ a['actuario'] if a['actuario'] else '' }}">
+            </div>
+            <div class="mb-2">
+              <label class="form-label">Fecha de avocamiento</label>
+              <input type="date" name="fecha_avocamiento" class="form-control" value="{{ a['fecha_avocamiento'] if a['fecha_avocamiento'] else '' }}">
+            </div>
+            <div class="mb-2">
+              <label class="form-label">Damnificado</label>
+              <input name="damnificado" class="form-control" value="{{ a['damnificado'] }}" required>
+            </div>
+            <div class="mb-2">
+              <label class="form-label">Acusado</label>
+              <input name="acusado" class="form-control" value="{{ a['acusado'] }}" required>
+            </div>
+            <div class="mb-2">
+              <label class="form-label">Relato</label>
+              <textarea name="relato" class="form-control" rows="3">{{ a['relato'] if a['relato'] else '' }}</textarea>
+            </div>
+            {% if es_admin %}
+            <div class="mb-2">
+              <label class="form-label">Estado</label>
+              <select name="estado" class="form-select">
+                <option value="" {% if not a['estado'] %}selected{% endif %}></option>
+                {% for k,v in statuses.items() %}
+                <option value="{{k}}" {% if a['estado']==k %}selected{% endif %}>{{v}}</option>
+                {% endfor %}
+              </select>
+            </div>
+            <div class="mb-2">
+              <label class="form-label">Color</label>
+              <select name="color" class="form-select">
+                <option value="" {% if not a['color'] %}selected{% endif %}>Ningún color</option>
+                {% for c in colors %}
+                <option value="{{c}}" {% if a['color']==c %}selected{% endif %}>{{c}}</option>
+                {% endfor %}
+              </select>
+            </div>
+            {% else %}
+            <div class="mb-2">
+              <label class="form-label">Estado</label>
+              <input class="form-control" value="{{ statuses[a['estado']] if a['estado'] else 'Sin asignar' }}" disabled>
+            </div>
+            <div class="mb-2">
+              <label class="form-label">Color</label>
+              <input class="form-control" value="{{ a['color'] if a['color'] else 'Sin asignar' }}" disabled>
+            </div>
+            {% endif %}
+            <div class="d-flex justify-content-between">
+              <a href="/" class="btn btn-secondary">Volver</a>
+              <button class="btn btn-primary">Guardar</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+{% endblock %}

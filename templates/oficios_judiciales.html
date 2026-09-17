@@ -1,0 +1,47 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="row">
+  <div class="col-md-4">
+    <div class="card mb-3">
+      <div class="card-header">Nuevo oficio judicial</div>
+      <div class="card-body">
+        {% if error %}<div class="alert alert-danger">{{ error }}</div>{% endif %}
+        <form method="post">
+          <label class="form-label">Fecha de ingreso</label>
+          <input type="date" name="fecha_ingreso" class="form-control mb-2" required>
+          <input name="numero_expediente" class="form-control mb-2" placeholder="Nº de expediente" required>
+          <input name="fiscalia" class="form-control mb-2" placeholder="Fiscalía">
+          <input name="acusado" class="form-control mb-2" placeholder="Acusado">
+          <textarea name="diligencias" class="form-control mb-2" rows="3" placeholder="Diligencias"></textarea>
+          <input name="actuario" class="form-control mb-2" placeholder="Actuario">
+          <label class="form-label">Pedido de allanamiento</label>
+          <textarea name="pedido_allanamiento" class="form-control mb-2" rows="2" placeholder="Indicar si tiene o no pedido de allanamiento"></textarea>
+          <label class="form-label">Resultado</label>
+          <select name="resultado" class="form-select mb-2">
+            <option value="">Sin informar</option>
+            <option value="Positivo">Positivo</option>
+            <option value="Negativo">Negativo</option>
+          </select>
+          <button class="btn btn-success">Agregar oficio judicial</button>
+        </form>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-8">
+    <div class="card">
+      <div class="card-header">Oficios judiciales registrados</div>
+      <div class="table-responsive">
+        <table class="table table-sm mb-0">
+          <thead><tr><th>Fecha ingreso</th><th>Expediente</th><th>Fiscalía</th><th>Acusado</th><th>Diligencias</th><th>Actuario</th><th>Pedido de allanamiento</th><th>Resultado</th><th></th></tr></thead>
+          <tbody>
+          {% for o in registros %}
+            <tr><td>{{ o['fecha_ingreso'] }}</td><td>{{ o['numero_expediente'] }}</td><td>{{ o['fiscalia'] or '' }}</td><td>{{ o['acusado'] or '' }}</td><td>{{ o['diligencias'] or '' }}</td><td>{{ o['actuario'] or '' }}</td><td>{{ o['pedido_allanamiento'] or '' }}</td><td>{{ o['resultado'] or '' }}</td>
+              <td><form method="post" action="/oficios-judiciales/eliminar/{{ o['id'] }}" onsubmit="return confirm('¿Eliminar este oficio?')"><button class="btn btn-sm btn-outline-danger">Borrar</button></form></td></tr>
+          {% else %}<tr><td colspan="9" class="text-center text-muted p-3">No hay oficios judiciales</td></tr>{% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

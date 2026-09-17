@@ -1,0 +1,47 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="row">
+  <div class="col-md-4">
+    <div class="card mb-3">
+      <div class="card-header">Nuevo allanamiento</div>
+      <div class="card-body">
+        {% if error %}<div class="alert alert-danger">{{ error }}</div>{% endif %}
+        <form method="post">
+          <input name="ap" class="form-control mb-2" placeholder="AP" required>
+          <input name="causa" class="form-control mb-2" placeholder="Causa" required>
+          <input name="acusados" class="form-control mb-2" placeholder="Acusados" required>
+          <input name="damnificado" class="form-control mb-2" placeholder="Damnificado" required>
+          <input name="esclarecido" class="form-control mb-2" placeholder="Esclarecido">
+          <input type="number" min="0" name="cantidad_detenidos" class="form-control mb-2" placeholder="Cantidad de detenidos">
+          <input type="number" min="0" name="cantidad_secuestros" class="form-control mb-2" placeholder="Cantidad de secuestros">
+          <input name="tipo_secuestro" class="form-control mb-2" placeholder="Tipo de secuestro">
+          <input type="number" min="0" name="cantidad_domicilios" class="form-control mb-2" placeholder="Cantidad de domicilios">
+          <input name="localidad" class="form-control mb-2" placeholder="Localidad">
+          <button class="btn btn-success">Agregar allanamiento</button>
+        </form>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-8">
+    <div class="card">
+      <div class="card-header">Allanamientos registrados</div>
+      <div class="table-responsive">
+        <table class="table table-sm mb-0">
+          <thead><tr><th>AP</th><th>Causa</th><th>Acusados</th><th>Damnificado</th><th>Esclarecido</th><th>Detenidos</th><th>Secuestros</th><th>Domicilios</th><th>Localidad</th><th></th></tr></thead>
+          <tbody>
+          {% for a in registros %}
+            <tr>
+              <td>{{ a['ap'] }}</td><td>{{ a['causa'] }}</td><td>{{ a['acusados'] }}</td><td>{{ a['damnificado'] }}</td>
+              <td>{{ a['esclarecido'] or '' }}</td><td>{{ a['cantidad_detenidos'] or 0 }}</td>
+              <td>{{ a['cantidad_secuestros'] or 0 }} {{ a['tipo_secuestro'] or '' }}</td>
+              <td>{{ a['cantidad_domicilios'] or 0 }}</td><td>{{ a['localidad'] or '' }}</td>
+              <td><form method="post" action="/allanamientos/eliminar/{{ a['id'] }}" onsubmit="return confirm('¿Eliminar este allanamiento?')"><button class="btn btn-sm btn-outline-danger">Borrar</button></form></td>
+            </tr>
+          {% else %}<tr><td colspan="10" class="text-center text-muted p-3">No hay allanamientos</td></tr>{% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
