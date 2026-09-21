@@ -3,45 +3,42 @@
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Login - Registro de Actuaciones</title>
+    <title>Iniciar sesión — DPAI</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="/static/style.css">
     <link rel="icon" type="image/svg+xml" href="/static/favicon.svg">
   </head>
-  <body class="d-flex align-items-center justify-content-center" style="min-height:100vh; background-color:#ffffff;">
-    <div class="container">
-      <div class="row justify-content-center">
-        <div class="col-md-5">
-          <div class="text-center mb-0" style="margin-top: -64px; margin-bottom: 5cm;">
-            <img src="{{ url_for('static', filename='logo_policia.png') }}" alt="Logo Policía de Salta" class="img-fluid" style="max-width: 340px;">
+  <body>
+    <div class="auth-page">
+      <div class="auth-card">
+        <div class="text-center mb-4">
+          <img src="{{ url_for('static', filename='logo_policia.png') }}" alt="Logo Policía de Salta" style="max-width: 190px;">
+        </div>
+        <div class="card">
+          <div class="card-header">Registro de Actuaciones</div>
+          <div class="card-body">
+            {% if error %}
+            <div class="alert alert-danger">{{ error }}</div>
+            {% endif %}
+            {% if success %}
+            <div class="alert alert-success">{{ success }}</div>
+            {% endif %}
+            <form method="post">
+              <div class="mb-2">
+                <label class="form-label">Usuario</label>
+                <input type="text" name="nombre_usuario" class="form-control" required autofocus>
+              </div>
+              <div class="mb-2">
+                <label class="form-label">Contraseña</label>
+                <input type="password" name="contrasena" class="form-control" required>
+              </div>
+              <button class="btn btn-primary w-100 mt-1">Entrar</button>
+            </form>
           </div>
-          <div class="card">
-            <div class="card-header bg-primary text-white text-center">
-              <h5 class="mb-0">Registro de Actuaciones</h5>
-            </div>
-            <div class="card-body">
-              {% if error %}
-              <div class="alert alert-danger">{{ error }}</div>
-              {% endif %}
-              {% if success %}
-              <div class="alert alert-success">{{ success }}</div>
-              {% endif %}
-              <form method="post">
-                <div class="mb-3">
-                  <label class="form-label">Usuario</label>
-                  <input type="text" name="nombre_usuario" class="form-control" required>
-                </div>
-                <div class="mb-3">
-                  <label class="form-label">Contraseña</label>
-                  <input type="password" name="contrasena" class="form-control" required>
-                </div>
-                <button class="btn btn-primary w-100">Entrar</button>
-              </form>
-            </div>
-            <div class="card-footer text-center text-muted">
-              ¿No tienes cuenta? <a href="/registrar">Registrate aquí</a>
-              <br><small><a href="/olvide-password">¿Olvidaste tu contraseña?</a></small>
-              <br><small><a href="/crear-admin">¿Primera vez? Crear administrador</a></small>
-            </div>
+          <div class="card-footer text-center text-muted" style="background:#fff; font-size:.85rem;">
+            ¿No tenés cuenta? <a href="/registrar">Registrate acá</a>
+            <br><a href="/olvide-password">¿Olvidaste tu contraseña?</a>
+            <br><a href="/crear-admin">¿Primera vez? Creá el administrador</a>
           </div>
         </div>
       </div>
