@@ -82,7 +82,7 @@
         <div class="tab-content">
           <!-- Pestaña "Todos" -->
           <div class="tab-pane fade show active" id="todos" role="tabpanel" aria-labelledby="tab-todos">
-            <div class="p-0">
+            <div class="table-responsive p-0">
               <table class="table table-sm mb-0">
                 <thead>
                   <tr>
@@ -128,7 +128,7 @@
           <!-- Pestañas por Usuario -->
           {% for usuario, actuaciones_usuario in actuaciones_por_usuario.items() | sort(attribute='0') %}
           <div class="tab-pane fade" id="usuario-{{ loop.index }}" role="tabpanel" aria-labelledby="tab-{{ loop.index }}">
-            <div class="p-0">
+            <div class="table-responsive p-0">
               <table class="table table-sm mb-0">
                 <thead>
                   <tr>
@@ -171,7 +171,7 @@
         
         {% else %}
         <!-- Vista para Usuarios No-Admin -->
-        <div class="card-body p-0">
+        <div class="table-responsive card-body p-0">
           <table class="table table-sm mb-0">
             <thead>
               <tr>

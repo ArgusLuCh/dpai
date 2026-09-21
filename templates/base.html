@@ -12,7 +12,10 @@
     <nav class="navbar navbar-expand-lg navbar-dark bg-primary mb-4">
       <div class="container-fluid">
         <a class="navbar-brand" href="/">Estadística DPAI</a>
-        <div class="navbar-collapse">
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navMenu" aria-controls="navMenu" aria-expanded="false" aria-label="Abrir menú">
+          <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navMenu">
           <ul class="navbar-nav ms-auto app-top-nav">
             {% if current_user.is_authenticated %}
             {% if vista_consultor_activa or (current_user.es_consulta and not current_user.es_admin) %}
