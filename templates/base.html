@@ -15,7 +15,7 @@
         <div class="navbar-collapse">
           <ul class="navbar-nav ms-auto app-top-nav">
             {% if current_user.is_authenticated %}
-            {% if current_user.es_consulta and not current_user.es_admin %}
+            {% if vista_consultor_activa or (current_user.es_consulta and not current_user.es_admin) %}
             <li class="nav-item"><a class="nav-link app-top-link" href="/estadisticas">Estadísticas</a></li>
             {% else %}
             <li class="nav-item"><a class="nav-link app-top-link" href="/">Actuaciones</a></li>
@@ -23,9 +23,18 @@
             <li class="nav-item"><a class="nav-link app-top-link" href="/oficios-judiciales">Oficios judiciales</a></li>
             {% endif %}
             {% endif %}
-            {% if current_user.es_admin %}
+            {% if es_admin_real and not vista_consultor_activa %}
             <li class="nav-item">
               <a class="nav-link app-top-link" href="/usuarios">Gestionar Usuarios</a>
+            </li>
+            {% endif %}
+            {% if es_admin_real %}
+            <li class="nav-item">
+              {% if vista_consultor_activa %}
+              <a class="nav-link app-top-link" href="/vista/admin" style="font-weight:bold;">← Volver a panel admin</a>
+              {% else %}
+              <a class="nav-link app-top-link" href="/vista/consultor">Ver como consultor</a>
+              {% endif %}
             </li>
             {% endif %}
             <li class="nav-item">

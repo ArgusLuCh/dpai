@@ -1,5 +1,5 @@
 import os
-from flask import Flask, render_template, request, redirect, url_for
+from flask import Flask, render_template, request, redirect, url_for, session
 from flask_login import LoginManager, UserMixin, login_user, logout_user, login_required, current_user
 from werkzeug.security import generate_password_hash, check_password_hash
 import psycopg2
@@ -160,6 +160,28 @@ def load_user(user_id):
         return Usuario(user['id'], user['nombre_usuario'], user['nombre_completo'], user['es_admin'], user['es_consulta'])
     return None
 
+def vista_consultor_activa():
+    """True si un admin activó el modo 'ver como consultor' en esta sesión."""
+    return bool(session.get('vista_consultor')) and current_user.is_authenticated and current_user.es_admin
+
+def es_admin_efectivo():
+    """Admin real, excepto mientras está previsualizando la vista de consultor."""
+    return current_user.is_authenticated and current_user.es_admin and not vista_consultor_activa()
+
+def es_consulta_efectivo():
+    """Trata al usuario como 'de consulta' si lo es de verdad, o si un admin
+    activó la previsualización de esa vista."""
+    if vista_consultor_activa():
+        return True
+    return current_user.is_authenticated and current_user.es_consulta and not current_user.es_admin
+
+@app.context_processor
+def inject_vista_helpers():
+    return dict(
+        vista_consultor_activa=vista_consultor_activa(),
+        es_admin_real=current_user.is_authenticated and current_user.es_admin
+    )
+
 STATUSES = {
     'elevada': 'Elevada',
     'elevada_con_acusado': 'Elevada (con acusado)',
@@ -203,6 +225,20 @@ def login():
 def logout():
     logout_user()
     return redirect(url_for('login'))
+
+@app.route('/vista/consultor')
+@login_required
+def activar_vista_consultor():
+    if not current_user.es_admin:
+        return redirect(url_for('index'))
+    session['vista_consultor'] = True
+    return redirect(url_for('estadisticas'))
+
+@app.route('/vista/admin')
+@login_required
+def volver_vista_admin():
+    session.pop('vista_consultor', None)
+    return redirect(url_for('index'))
 
 @app.route('/registrar', methods=['GET', 'POST'])
 def registrar():
@@ -267,12 +303,12 @@ def olvide_password():
 @app.route('/')
 @login_required
 def index():
-    if current_user.es_consulta and not current_user.es_admin:
+    if es_consulta_efectivo():
         return redirect(url_for('estadisticas'))
     conn = get_db()
     busqueda = request.args.get('q', '').strip()
     
-    if current_user.es_admin:
+    if es_admin_efectivo():
         if busqueda:
             # Búsqueda general en múltiples campos
             patron = f'%{busqueda}%'
@@ -300,12 +336,12 @@ def index():
         actuaciones_por_usuario = {}
     
     conn.close()
-    return render_template('index.html', actuaciones=filas, actuaciones_por_usuario=actuaciones_por_usuario, statuses=STATUSES, colors=COLORS, es_admin=current_user.es_admin, busqueda=busqueda)
+    return render_template('index.html', actuaciones=filas, actuaciones_por_usuario=actuaciones_por_usuario, statuses=STATUSES, colors=COLORS, es_admin=es_admin_efectivo(), busqueda=busqueda)
 
 @app.route('/add', methods=['POST'])
 @login_required
 def add():
-    if current_user.es_consulta and not current_user.es_admin:
+    if es_consulta_efectivo():
         return redirect(url_for('estadisticas'))
     numero_actuacion = request.form.get('numero_actuacion','').strip()
     caratula = request.form.get('caratula','').strip()
@@ -335,7 +371,7 @@ def add():
 @app.route('/edit/<int:id>', methods=['GET','POST'])
 @login_required
 def edit(id):
-    if current_user.es_consulta and not current_user.es_admin:
+    if es_consulta_efectivo():
         return redirect(url_for('estadisticas'))
     conn = get_db()
     fila = conn.execute('SELECT * FROM actuaciones WHERE id=?', (id,)).fetchone()
@@ -344,7 +380,7 @@ def edit(id):
         conn.close()
         return redirect(url_for('index'))
     
-    if fila['user_id'] != current_user.id and not current_user.es_admin:
+    if fila['user_id'] != current_user.id and not es_admin_efectivo():
         conn.close()
         return redirect(url_for('index'))
     
@@ -367,11 +403,11 @@ def edit(id):
                 a=fila,
                 statuses=STATUSES,
                 colors=COLORS,
-                es_admin=current_user.es_admin,
+                es_admin=es_admin_efectivo(),
                 error='Número, fecha del hecho, damnificado y acusado son obligatorios'
             )
 
-        if current_user.es_admin:
+        if es_admin_efectivo():
             estado = request.form.get('estado')
             if estado is not None:
                 estado = estado.strip()
@@ -399,17 +435,17 @@ def edit(id):
         return redirect(url_for('index'))
     
     conn.close()
-    return render_template('edit.html', a=fila, statuses=STATUSES, colors=COLORS, es_admin=current_user.es_admin)
+    return render_template('edit.html', a=fila, statuses=STATUSES, colors=COLORS, es_admin=es_admin_efectivo())
 
 @app.route('/delete/<int:id>', methods=['POST'])
 @login_required
 def delete(id):
-    if current_user.es_consulta and not current_user.es_admin:
+    if es_consulta_efectivo():
         return redirect(url_for('estadisticas'))
     conn = get_db()
     fila = conn.execute('SELECT user_id FROM actuaciones WHERE id=?', (id,)).fetchone()
     
-    if fila and (fila['user_id'] == current_user.id or current_user.es_admin):
+    if fila and (fila['user_id'] == current_user.id or es_admin_efectivo()):
         conn.execute('DELETE FROM actuaciones WHERE id=?', (id,))
         conn.commit()
     
@@ -417,7 +453,7 @@ def delete(id):
     return redirect(url_for('index'))
 
 def registros_propios_o_todos(conn, tabla):
-    if current_user.es_admin:
+    if es_admin_efectivo():
         return conn.execute(f'SELECT * FROM {tabla} ORDER BY created_at DESC').fetchall()
     return conn.execute(
         f'SELECT * FROM {tabla} WHERE user_id=? ORDER BY created_at DESC',
@@ -427,7 +463,7 @@ def registros_propios_o_todos(conn, tabla):
 @app.route('/estadisticas')
 @login_required
 def estadisticas():
-    if not current_user.es_consulta and not current_user.es_admin:
+    if not es_consulta_efectivo() and not es_admin_efectivo():
         return redirect(url_for('index'))
 
     conn = get_db()
@@ -524,7 +560,7 @@ def estadisticas():
 @app.route('/allanamientos', methods=['GET', 'POST'])
 @login_required
 def allanamientos():
-    if current_user.es_consulta and not current_user.es_admin:
+    if es_consulta_efectivo():
         return redirect(url_for('estadisticas'))
     conn = get_db()
     if request.method == 'POST':
@@ -557,11 +593,11 @@ def allanamientos():
 @app.route('/allanamientos/eliminar/<int:id>', methods=['POST'])
 @login_required
 def eliminar_allanamiento(id):
-    if current_user.es_consulta and not current_user.es_admin:
+    if es_consulta_efectivo():
         return redirect(url_for('estadisticas'))
     conn = get_db()
     conn.execute('DELETE FROM allanamientos WHERE id=? AND (user_id=? OR ?=1)',
-                 (id, current_user.id, int(current_user.es_admin)))
+                 (id, current_user.id, int(es_admin_efectivo())))
     conn.commit()
     conn.close()
     return redirect(url_for('allanamientos'))
@@ -569,7 +605,7 @@ def eliminar_allanamiento(id):
 @app.route('/oficios-judiciales', methods=['GET', 'POST'])
 @login_required
 def oficios_judiciales():
-    if current_user.es_consulta and not current_user.es_admin:
+    if es_consulta_efectivo():
         return redirect(url_for('estadisticas'))
     conn = get_db()
     if request.method == 'POST':
@@ -598,11 +634,11 @@ def oficios_judiciales():
 @app.route('/oficios-judiciales/eliminar/<int:id>', methods=['POST'])
 @login_required
 def eliminar_oficio_judicial(id):
-    if current_user.es_consulta and not current_user.es_admin:
+    if es_consulta_efectivo():
         return redirect(url_for('estadisticas'))
     conn = get_db()
     conn.execute('DELETE FROM oficios_judiciales WHERE id=? AND (user_id=? OR ?=1)',
-                 (id, current_user.id, int(current_user.es_admin)))
+                 (id, current_user.id, int(es_admin_efectivo())))
     conn.commit()
     conn.close()
     return redirect(url_for('oficios_judiciales'))
@@ -640,7 +676,7 @@ def crear_admin():
 @app.route('/usuarios')
 @login_required
 def usuarios():
-    if not current_user.es_admin:
+    if not es_admin_efectivo():
         return redirect(url_for('index'))
     
     conn = get_db()
@@ -652,7 +688,7 @@ def usuarios():
 @app.route('/crear-usuario-consulta', methods=['POST'])
 @login_required
 def crear_usuario_consulta():
-    if not current_user.es_admin:
+    if not es_admin_efectivo():
         return redirect(url_for('index'))
     nombre_usuario = request.form.get('nombre_usuario', '').strip()
     contrasena = request.form.get('contrasena', '')
@@ -677,7 +713,7 @@ def crear_usuario_consulta():
 @app.route('/convertir-a-consulta/<int:user_id>', methods=['POST'])
 @login_required
 def convertir_a_consulta(user_id):
-    if not current_user.es_admin or user_id == current_user.id:
+    if not es_admin_efectivo() or user_id == current_user.id:
         return redirect(url_for('usuarios'))
     conn = get_db()
     conn.execute(
@@ -691,7 +727,7 @@ def convertir_a_consulta(user_id):
 @app.route('/resetear-password/<int:user_id>', methods=['GET', 'POST'])
 @login_required
 def resetear_password(user_id):
-    if not current_user.es_admin:
+    if not es_admin_efectivo():
         return redirect(url_for('index'))
     
     conn = get_db()
@@ -729,7 +765,7 @@ def resetear_password(user_id):
 @app.route('/eliminar-usuario/<int:user_id>', methods=['POST'])
 @login_required
 def eliminar_usuario(user_id):
-    if not current_user.es_admin:
+    if not es_admin_efectivo():
         return redirect(url_for('index'))
 
     # No permitir que un admin se elimine a sí mismo
