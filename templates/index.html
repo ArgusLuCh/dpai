@@ -1,189 +1,64 @@
 {% extends 'base.html' %}
 {% block content %}
-  <div class="row">
-    <div class="col-md-5">
-      <div class="card mb-3">
-        <div class="card-header">Nueva actuación</div>
-        <div class="card-body">
-          <form method="post" action="/add">
-            <div class="mb-2">
-              <label class="form-label">Número de actuación</label>
-              <input name="numero_actuacion" class="form-control" required>
-            </div>
-            <div class="mb-2">
-              <label class="form-label">Carátula</label>
-              <input name="caratula" class="form-control" placeholder="Ej: Robo simple">
-            </div>
-            <div class="mb-2">
-              <label class="form-label">Fecha del hecho</label>
-              <input type="date" name="fecha_hecho" class="form-control" required>
-            </div>
-            <div class="mb-2">
-              <label class="form-label">Fecha de registro</label>
-              <input type="date" name="fecha_registro" class="form-control" required>
-            </div>
-            <div class="mb-2">
-              <label class="form-label">Fecha de avocamiento</label>
-              <input type="date" name="fecha_avocamiento" class="form-control">
-            </div>
-            <div class="mb-2">
-              <label class="form-label">Dependencia</label>
-              <input name="dependencia" class="form-control" placeholder="Ej: Fiscalía - Unidad X">
-            </div>
-            <div class="mb-2">
-              <label class="form-label">Actuario</label>
-              <input name="actuario" class="form-control">
-            </div>
-            <div class="mb-2">
-              <label class="form-label">Damnificado</label>
-              <input name="damnificado" class="form-control" required>
-            </div>
-            <div class="mb-2">
-              <label class="form-label">Acusado</label>
-              <input name="acusado" class="form-control" required>
-            </div>
-            <button class="btn btn-success">Agregar</button>
-          </form>
-        </div>
-      </div>
+  <div class="quick-menu">
+    <a href="/" class="quick-menu-btn"><span class="quick-menu-btn-icon">📋</span>Actuaciones</a>
+    <a href="/allanamientos" class="quick-menu-btn"><span class="quick-menu-btn-icon">🏠</span>Allanamientos</a>
+    <a href="/oficios-judiciales" class="quick-menu-btn"><span class="quick-menu-btn-icon">⚖️</span>Oficios judiciales</a>
+    {% if es_admin %}<a href="/usuarios" class="quick-menu-btn"><span class="quick-menu-btn-icon">👥</span>Usuarios</a>{% endif %}
+    <a href="/estadisticas" class="quick-menu-btn"><span class="quick-menu-btn-icon">📊</span>Estadísticas</a>
+  </div>
+
+  <details class="card mb-3 form-toggle">
+    <summary class="card-header">➕ Nueva actuación</summary>
+    <div class="card-body">
+      <form method="post" action="/add">
+        <div class="mb-2"><label class="form-label">Número de actuación</label><input name="numero_actuacion" class="form-control" required></div>
+        <div class="mb-2"><label class="form-label">Carátula</label><input name="caratula" class="form-control" placeholder="Ej: Robo simple"></div>
+        <div class="mb-2"><label class="form-label">Fecha del hecho</label><input type="date" name="fecha_hecho" class="form-control" required></div>
+        <div class="mb-2"><label class="form-label">Fecha de registro</label><input type="date" name="fecha_registro" class="form-control" required></div>
+        <div class="mb-2"><label class="form-label">Fecha de avocamiento</label><input type="date" name="fecha_avocamiento" class="form-control"></div>
+        <div class="mb-2"><label class="form-label">Dependencia</label><input name="dependencia" class="form-control" placeholder="Ej: Fiscalía - Unidad X"></div>
+        <div class="mb-2"><label class="form-label">Actuario</label><input name="actuario" class="form-control"></div>
+        <div class="mb-2"><label class="form-label">Damnificado</label><input name="damnificado" class="form-control" required></div>
+        <div class="mb-2"><label class="form-label">Acusado</label><input name="acusado" class="form-control" required></div>
+        <button class="btn btn-success">Agregar</button>
+      </form>
     </div>
-    <div class="col-md-7">
-      <div class="card">
-        <div class="card-header">
-          {% if es_admin %}<span class="badge bg-danger">ADMINISTRADOR</span>{% endif %}
-          Actuaciones
-        </div>
-        {% if es_admin %}
-        <div class="card-body border-bottom p-3">
-          <form method="get" action="/" class="d-flex gap-2">
-            <input type="text" name="q" class="form-control" placeholder="Buscar por N°, carátula, damnificado, acusado o dependencia..." value="{{ busqueda }}">
-            <button type="submit" class="btn btn-primary">Buscar</button>
-            {% if busqueda %}<a href="/" class="btn btn-secondary">Limpiar</a>{% endif %}
-          </form>
-        </div>
-        
-        <!-- Navegación de Pestañas para Administrador -->
-        <ul class="nav nav-tabs app-tabs" role="tablist">
-          <li class="nav-item" role="presentation">
-            <button class="nav-link app-tab active" id="tab-todos" data-bs-toggle="tab" data-bs-target="#todos" type="button" role="tab" aria-controls="todos" aria-selected="true">
-              Todos
-            </button>
-          </li>
-          {% for usuario in actuaciones_por_usuario.keys() | sort %}
-          <li class="nav-item" role="presentation">
-            <button class="nav-link app-tab" id="tab-{{ loop.index }}" data-bs-toggle="tab" data-bs-target="#usuario-{{ loop.index }}" type="button" role="tab" aria-controls="usuario-{{ loop.index }}" aria-selected="false">
-              {{ usuario }}
-            </button>
-          </li>
-          {% endfor %}
-        </ul>
-        
-        <!-- Contenido de las Pestañas -->
-        <div class="tab-content">
-          <!-- Pestaña "Todos" -->
-          <div class="tab-pane fade show active" id="todos" role="tabpanel" aria-labelledby="tab-todos">
-            <div class="table-responsive p-0">
-              <table class="table table-sm mb-0">
-                <thead>
-                  <tr>
-                    <th>Nº Actuación</th>
-                    <th>Carátula</th>
-                    <th>Fecha de registro</th>
-                    <th>Fecha de avocamiento</th>
-                    <th>Dependencia</th>
-                    <th>Actuario</th>
-                    <th>Damnificado</th>
-                    <th>Estado</th>
-                    <th>Color</th>
-                    <th></th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {% for a in actuaciones %}
-                  <tr>
-                    <td>{{ a['numero_actuacion'] }}</td>
-                    <td>{{ a['caratula'] or '' }}</td>
-                    <td>{{ a['fecha_registro'] or '' }}</td>
-                    <td>{{ a['fecha_avocamiento'] or '' }}</td>
-                    <td>{{ a['dependencia'] or '' }}</td>
-                    <td>{{ a['actuario'] or '' }}</td>
-                    <td>{{ a['damnificado'] }}<div class="text-muted small">Acusado: {{ a['acusado'] }}</div></td>
-                    <td><small>{{ statuses[a['estado']] if a['estado'] else 'Sin asignar' }}</small></td>
-                    <td>{% if a['color'] %}<span class="badge color-{{ a['color'] }}">{{ a['color'] }}</span>{% else %}<span class="badge bg-secondary">Sin asignar</span>{% endif %}</td>
-                    <td class="text-end">
-                      <a href="/edit/{{ a['id'] }}" class="btn btn-sm btn-outline-primary">Editar</a>
-                      <form method="post" action="/delete/{{ a['id'] }}" style="display:inline-block" onsubmit="return confirm('Eliminar?')">
-                        <button class="btn btn-sm btn-outline-danger">Borrar</button>
-                      </form>
-                    </td>
-                  </tr>
-                  {% else %}
-                  <tr><td colspan="10" class="text-center text-muted p-3">No hay actuaciones</td></tr>
-                  {% endfor %}
-                </tbody>
-              </table>
-            </div>
-          </div>
-          
-          <!-- Pestañas por Usuario -->
-          {% for usuario, actuaciones_usuario in actuaciones_por_usuario.items() | sort(attribute='0') %}
-          <div class="tab-pane fade" id="usuario-{{ loop.index }}" role="tabpanel" aria-labelledby="tab-{{ loop.index }}">
-            <div class="table-responsive p-0">
-              <table class="table table-sm mb-0">
-                <thead>
-                  <tr>
-                    <th>Nº Actuación</th>
-                    <th>Carátula</th>
-                    <th>Fecha de avocamiento</th>
-                    <th>Dependencia</th>
-                    <th>Actuario</th>
-                    <th>Damnificado</th>
-                    <th>Estado</th>
-                    <th>Color</th>
-                    <th></th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {% for a in actuaciones_usuario %}
-                  <tr>
-                    <td>{{ a['numero_actuacion'] }}</td>
-                    <td>{{ a['caratula'] or '' }}</td>
-                    <td>{{ a['fecha_avocamiento'] or '' }}</td>
-                    <td>{{ a['dependencia'] or '' }}</td>
-                    <td>{{ a['actuario'] or '' }}</td>
-                    <td>{{ a['damnificado'] }}<div class="text-muted small">Acusado: {{ a['acusado'] }}</div></td>
-                    <td><small>{{ statuses[a['estado']] if a['estado'] else 'Sin asignar' }}</small></td>
-                    <td>{% if a['color'] %}<span class="badge color-{{ a['color'] }}">{{ a['color'] }}</span>{% else %}<span class="badge bg-secondary">Sin asignar</span>{% endif %}</td>
-                    <td class="text-end">
-                      <a href="/edit/{{ a['id'] }}" class="btn btn-sm btn-outline-primary">Editar</a>
-                      <form method="post" action="/delete/{{ a['id'] }}" style="display:inline-block" onsubmit="return confirm('Eliminar?')">
-                        <button class="btn btn-sm btn-outline-danger">Borrar</button>
-                      </form>
-                    </td>
-                  </tr>
-                  {% endfor %}
-                </tbody>
-              </table>
-            </div>
-          </div>
-          {% endfor %}
-        </div>
-        
-        {% else %}
-        <!-- Vista para Usuarios No-Admin -->
-        <div class="table-responsive card-body p-0">
+  </details>
+
+  <div class="card table-section">
+    <div class="card-header">
+      {% if es_admin %}<span class="badge bg-danger">ADMINISTRADOR</span>{% endif %}
+      Actuaciones
+    </div>
+    {% if es_admin %}
+    <div class="card-body border-bottom p-3">
+      <form method="get" action="/" class="d-flex gap-2">
+        <input type="text" name="q" class="form-control" placeholder="Buscar por N°, carátula, damnificado, acusado o dependencia..." value="{{ busqueda }}">
+        <button type="submit" class="btn btn-primary">Buscar</button>
+        {% if busqueda %}<a href="/" class="btn btn-secondary">Limpiar</a>{% endif %}
+      </form>
+    </div>
+
+    <ul class="nav nav-tabs app-tabs" role="tablist">
+      <li class="nav-item" role="presentation">
+        <button class="nav-link app-tab active" id="tab-todos" data-bs-toggle="tab" data-bs-target="#todos" type="button" role="tab" aria-controls="todos" aria-selected="true">Todos</button>
+      </li>
+      {% for usuario in actuaciones_por_usuario.keys() | sort %}
+      <li class="nav-item" role="presentation">
+        <button class="nav-link app-tab" id="tab-{{ loop.index }}" data-bs-toggle="tab" data-bs-target="#usuario-{{ loop.index }}" type="button" role="tab" aria-controls="usuario-{{ loop.index }}" aria-selected="false">{{ usuario }}</button>
+      </li>
+      {% endfor %}
+    </ul>
+
+    <div class="tab-content">
+      <div class="tab-pane fade show active" id="todos" role="tabpanel" aria-labelledby="tab-todos">
+        <div class="table-responsive p-0">
           <table class="table table-sm mb-0">
             <thead>
               <tr>
-                <th>Nº Actuación</th>
-                <th>Carátula</th>
-                <th>Fecha de registro</th>
-                <th>Fecha de avocamiento</th>
-                <th>Dependencia</th>
-                <th>Damnificado</th>
-                <th>Estado</th>
-                <th>Color</th>
-                <th></th>
+                <th>Nº Actuación</th><th>Carátula</th><th>Fecha de registro</th><th>Fecha de avocamiento</th>
+                <th>Dependencia</th><th>Actuario</th><th>Damnificado</th><th>Estado</th><th>Color</th><th></th>
               </tr>
             </thead>
             <tbody>
@@ -194,24 +69,94 @@
                 <td>{{ a['fecha_registro'] or '' }}</td>
                 <td>{{ a['fecha_avocamiento'] or '' }}</td>
                 <td>{{ a['dependencia'] or '' }}</td>
+                <td>{{ a['actuario'] or '' }}</td>
                 <td>{{ a['damnificado'] }}<div class="text-muted small">Acusado: {{ a['acusado'] }}</div></td>
                 <td><small>{{ statuses[a['estado']] if a['estado'] else 'Sin asignar' }}</small></td>
                 <td>{% if a['color'] %}<span class="badge color-{{ a['color'] }}">{{ a['color'] }}</span>{% else %}<span class="badge bg-secondary">Sin asignar</span>{% endif %}</td>
                 <td class="text-end">
-                  <a href="/edit/{{ a['id'] }}" class="btn btn-sm btn-outline-secondary">Editar</a>
+                  <a href="/edit/{{ a['id'] }}" class="btn btn-sm btn-outline-primary">Editar</a>
                   <form method="post" action="/delete/{{ a['id'] }}" style="display:inline-block" onsubmit="return confirm('Eliminar?')">
                     <button class="btn btn-sm btn-outline-danger">Borrar</button>
                   </form>
                 </td>
               </tr>
               {% else %}
-              <tr><td colspan="9" class="text-center text-muted p-3">No hay actuaciones</td></tr>
+              <tr><td colspan="10" class="text-center text-muted p-3">No hay actuaciones</td></tr>
               {% endfor %}
             </tbody>
           </table>
         </div>
-        {% endif %}
       </div>
+
+      {% for usuario, actuaciones_usuario in actuaciones_por_usuario.items() | sort(attribute='0') %}
+      <div class="tab-pane fade" id="usuario-{{ loop.index }}" role="tabpanel" aria-labelledby="tab-{{ loop.index }}">
+        <div class="table-responsive p-0">
+          <table class="table table-sm mb-0">
+            <thead>
+              <tr>
+                <th>Nº Actuación</th><th>Carátula</th><th>Fecha de avocamiento</th><th>Dependencia</th>
+                <th>Actuario</th><th>Damnificado</th><th>Estado</th><th>Color</th><th></th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for a in actuaciones_usuario %}
+              <tr>
+                <td>{{ a['numero_actuacion'] }}</td>
+                <td>{{ a['caratula'] or '' }}</td>
+                <td>{{ a['fecha_avocamiento'] or '' }}</td>
+                <td>{{ a['dependencia'] or '' }}</td>
+                <td>{{ a['actuario'] or '' }}</td>
+                <td>{{ a['damnificado'] }}<div class="text-muted small">Acusado: {{ a['acusado'] }}</div></td>
+                <td><small>{{ statuses[a['estado']] if a['estado'] else 'Sin asignar' }}</small></td>
+                <td>{% if a['color'] %}<span class="badge color-{{ a['color'] }}">{{ a['color'] }}</span>{% else %}<span class="badge bg-secondary">Sin asignar</span>{% endif %}</td>
+                <td class="text-end">
+                  <a href="/edit/{{ a['id'] }}" class="btn btn-sm btn-outline-primary">Editar</a>
+                  <form method="post" action="/delete/{{ a['id'] }}" style="display:inline-block" onsubmit="return confirm('Eliminar?')">
+                    <button class="btn btn-sm btn-outline-danger">Borrar</button>
+                  </form>
+                </td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+      {% endfor %}
     </div>
+
+    {% else %}
+    <div class="table-responsive card-body p-0">
+      <table class="table table-sm mb-0">
+        <thead>
+          <tr>
+            <th>Nº Actuación</th><th>Carátula</th><th>Fecha de registro</th><th>Fecha de avocamiento</th>
+            <th>Dependencia</th><th>Damnificado</th><th>Estado</th><th>Color</th><th></th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for a in actuaciones %}
+          <tr>
+            <td>{{ a['numero_actuacion'] }}</td>
+            <td>{{ a['caratula'] or '' }}</td>
+            <td>{{ a['fecha_registro'] or '' }}</td>
+            <td>{{ a['fecha_avocamiento'] or '' }}</td>
+            <td>{{ a['dependencia'] or '' }}</td>
+            <td>{{ a['damnificado'] }}<div class="text-muted small">Acusado: {{ a['acusado'] }}</div></td>
+            <td><small>{{ statuses[a['estado']] if a['estado'] else 'Sin asignar' }}</small></td>
+            <td>{% if a['color'] %}<span class="badge color-{{ a['color'] }}">{{ a['color'] }}</span>{% else %}<span class="badge bg-secondary">Sin asignar</span>{% endif %}</td>
+            <td class="text-end">
+              <a href="/edit/{{ a['id'] }}" class="btn btn-sm btn-outline-secondary">Editar</a>
+              <form method="post" action="/delete/{{ a['id'] }}" style="display:inline-block" onsubmit="return confirm('Eliminar?')">
+                <button class="btn btn-sm btn-outline-danger">Borrar</button>
+              </form>
+            </td>
+          </tr>
+          {% else %}
+          <tr><td colspan="9" class="text-center text-muted p-3">No hay actuaciones</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% endif %}
   </div>
 {% endblock %}
