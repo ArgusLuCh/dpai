@@ -2,11 +2,13 @@ __pycache__/
 *.pyc
 .venv/
 .env
+.env.*
+!.env.example
 *.sqlite3
 *.db
 *.db.bak
 .idea/
 .vscode/
-.code-workspace
+*.code-workspace
 *.log
 .DS_Store

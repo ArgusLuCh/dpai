@@ -1,28 +1,30 @@
 {% extends 'base.html' %}
 {% block content %}
+{% set r = r or {} %}
+{% macro v(k) %}{{ r.get(k) or '' }}{% endmacro %}
 <div class="row">
   <div class="col-md-4">
     <div class="card mb-3">
-      <div class="card-header">Nuevo oficio judicial</div>
+      <div class="card-header">{{ 'Editar oficio judicial' if r else 'Nuevo oficio judicial' }}</div>
       <div class="card-body">
         {% if error %}<div class="alert alert-danger">{{ error }}</div>{% endif %}
         <form method="post">
           <label class="form-label">Fecha de ingreso</label>
-          <input type="date" name="fecha_ingreso" class="form-control mb-2" required>
-          <input name="numero_expediente" class="form-control mb-2" placeholder="Nº de expediente" required>
-          <input name="fiscalia" class="form-control mb-2" placeholder="Fiscalía">
-          <input name="acusado" class="form-control mb-2" placeholder="Acusado">
-          <textarea name="diligencias" class="form-control mb-2" rows="3" placeholder="Diligencias"></textarea>
-          <input name="actuario" class="form-control mb-2" placeholder="Actuario">
+          <input type="date" name="fecha_ingreso" class="form-control mb-2" value="{{ r.get('fecha_ingreso') or hoy }}" required>
+          <input name="numero_expediente" class="form-control mb-2" placeholder="Nº de expediente" value="{{ v('numero_expediente') }}" required>
+          <input name="fiscalia" class="form-control mb-2" placeholder="Fiscalía" value="{{ v('fiscalia') }}">
+          <input name="acusado" class="form-control mb-2" placeholder="Acusado" value="{{ v('acusado') }}">
+          <textarea name="diligencias" class="form-control mb-2" rows="3" placeholder="Diligencias">{{ v('diligencias') }}</textarea>
+          <input name="actuario" class="form-control mb-2" placeholder="Actuario" value="{{ v('actuario') }}">
           <label class="form-label">Pedido de allanamiento</label>
-          <textarea name="pedido_allanamiento" class="form-control mb-2" rows="2" placeholder="Indicar si tiene o no pedido de allanamiento"></textarea>
+          <textarea name="pedido_allanamiento" class="form-control mb-2" rows="2" placeholder="Indicar si tiene o no pedido de allanamiento">{{ v('pedido_allanamiento') }}</textarea>
           <label class="form-label">Resultado</label>
           <select name="resultado" class="form-select mb-2">
             <option value="">Sin informar</option>
-            <option value="Positivo">Positivo</option>
-            <option value="Negativo">Negativo</option>
+            {% for o in ['Positivo', 'Negativo'] %}<option value="{{ o }}" {% if r.get('resultado') == o %}selected{% endif %}>{{ o }}</option>{% endfor %}
           </select>
-          <button class="btn btn-success">Agregar oficio judicial</button>
+          <button class="btn btn-success">{{ 'Guardar' if r else 'Agregar oficio judicial' }}</button>
+          {% if r %}<a href="/oficios-judiciales" class="btn btn-secondary">Cancelar</a>{% endif %}
         </form>
       </div>
     </div>
@@ -36,7 +38,10 @@
           <tbody>
           {% for o in registros %}
             <tr><td>{{ o['fecha_ingreso'] }}</td><td>{{ o['numero_expediente'] }}</td><td>{{ o['fiscalia'] or '' }}</td><td>{{ o['acusado'] or '' }}</td><td>{{ o['diligencias'] or '' }}</td><td>{{ o['actuario'] or '' }}</td><td>{{ o['pedido_allanamiento'] or '' }}</td><td>{{ o['resultado'] or '' }}</td>
-              <td><form method="post" action="/oficios-judiciales/eliminar/{{ o['id'] }}" onsubmit="return confirm('¿Eliminar este oficio?')"><button class="btn btn-sm btn-outline-danger">Borrar</button></form></td></tr>
+              <td class="text-end text-nowrap">
+                <a href="/oficios-judiciales/editar/{{ o['id'] }}" class="btn btn-sm btn-outline-primary">Editar</a>
+                <form method="post" action="/oficios-judiciales/eliminar/{{ o['id'] }}" class="d-inline" onsubmit="return confirm('¿Eliminar este oficio?')"><button class="btn btn-sm btn-outline-danger">Borrar</button></form>
+              </td></tr>
           {% else %}<tr><td colspan="9" class="text-center text-muted p-3">No hay oficios judiciales</td></tr>{% endfor %}
           </tbody>
         </table>

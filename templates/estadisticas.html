@@ -1,22 +1,27 @@
 {% extends 'base.html' %}
+{% block title %}Estadísticas — DPAI{% endblock %}
+{% block meta %}<meta name="robots" content="noindex, nofollow">{% endblock %}
 {% block content %}
 <div class="row justify-content-center">
   <div class="col-lg-10">
+    {% if link %}
+    <div class="alert alert-info d-flex flex-wrap gap-2 align-items-center">
+      <span>Link para compartir:</span>
+      <input class="form-control form-control-sm w-auto flex-grow-1" value="{{ link }}" readonly onclick="this.select()">
+    </div>
+    {% elif not publico %}
+    <div class="alert alert-warning">Para compartir las estadísticas, definí la variable <code>STATS_TOKEN</code> en Railway.</div>
+    {% endif %}
     <div class="card">
-      <div class="card-header">
-        <span class="badge bg-info text-dark">CONSULTA</span>
-        Información cargada por año y tipo
-      </div>
+      <div class="card-header">Información cargada por año y tipo</div>
       <div class="card-body">
         <div class="row g-3 mb-4">
-          {% for tipo, total in totales.items() %}
+          {% for tipo, total in [('Actuaciones', total_actuaciones), ('Allanamientos', total_allanamientos), ('Oficios judiciales', total_oficios)] %}
           <div class="col-md-4">
-            <div class="card h-100 border-primary">
-              <div class="card-body text-center">
-                <div class="text-muted">{{ tipo }}</div>
-                <div class="display-6 fw-bold text-primary">{{ total }}</div>
-              </div>
-            </div>
+            <div class="card h-100 border-primary"><div class="card-body text-center">
+              <div class="text-muted">{{ tipo }}</div>
+              <div class="display-6 fw-bold text-primary">{{ total }}</div>
+            </div></div>
           </div>
           {% endfor %}
         </div>
@@ -28,80 +33,49 @@
                 <table class="table table-bordered text-center align-middle mb-0">
                   <thead class="table-light"><tr><th>Año</th><th>Carátula</th><th>Cantidad</th></tr></thead>
                   <tbody>
-                    {% for fila in actuaciones_por_caratula %}
-                    <tr>
-                      {% if fila['mostrar_anio'] %}
-                      <th rowspan="{{ fila['rowspan'] }}">{{ fila['anio'] }}</th>
-                      {% endif %}
-                      <td class="text-start">{{ fila['caratula'] }}</td>
-                      <td>{{ fila['cantidad'] }}</td>
-                    </tr>
+                    {% for anio, filas in actuaciones_por_anio.items() %}
+                      {% for f in filas %}
+                      <tr>
+                        {% if loop.first %}<th rowspan="{{ filas|length }}">{{ anio }}</th>{% endif %}
+                        <td class="text-start">{{ f['caratula'] }}</td><td>{{ f['cantidad'] }}</td>
+                      </tr>
+                      {% endfor %}
                     {% else %}
                     <tr><td colspan="3" class="text-muted p-3">Sin datos</td></tr>
                     {% endfor %}
-                    <tr class="table-primary fw-bold"><th colspan="2">Total</th><td>{{ totales['Actuaciones'] }}</td></tr>
+                    <tr class="table-primary fw-bold"><th colspan="2">Total</th><td>{{ total_actuaciones }}</td></tr>
                   </tbody>
                 </table>
               </div>
             </div>
           </div>
-
           <div class="col-lg-4">
             <div class="card h-100">
               <div class="card-header table-success fw-bold">Allanamientos</div>
               <div class="table-responsive">
                 <table class="table table-bordered text-center align-middle mb-0">
-                  <thead class="table-light">
-                    <tr><th>Año</th><th>Allanamientos</th><th>Domicilios allanados</th><th>Detenidos</th></tr>
-                  </thead>
+                  <thead class="table-light"><tr><th>Año</th><th>Allanamientos</th><th>Domicilios allanados</th><th>Detenidos</th></tr></thead>
                   <tbody>
-                    {% for fila in allanamientos_por_anio %}
-                    <tr>
-                      <th>{{ fila['anio'] }}</th>
-                      <td>{{ fila['cantidad'] }}</td>
-                      <td>{{ fila['domicilios'] }}</td>
-                      <td>{{ fila['detenidos'] }}</td>
-                    </tr>
-                    {% else %}
-                    <tr><td colspan="4" class="text-muted p-3">Sin datos</td></tr>
-                    {% endfor %}
-                    <tr class="table-success fw-bold">
-                      <th>Total</th>
-                      <td>{{ totales['Allanamientos'] }}</td>
-                      <td>{{ allanamientos_por_anio | sum(attribute='domicilios') }}</td>
-                      <td>{{ allanamientos_por_anio | sum(attribute='detenidos') }}</td>
-                    </tr>
+                    {% for f in allanamientos %}
+                    <tr><th>{{ f['anio'] }}</th><td>{{ f['cantidad'] }}</td><td>{{ f['domicilios'] }}</td><td>{{ f['detenidos'] }}</td></tr>
+                    {% else %}<tr><td colspan="4" class="text-muted p-3">Sin datos</td></tr>{% endfor %}
+                    <tr class="table-success fw-bold"><th>Total</th><td>{{ total_allanamientos }}</td><td>{{ domicilios }}</td><td>{{ detenidos }}</td></tr>
                   </tbody>
                 </table>
               </div>
             </div>
           </div>
-
           <div class="col-lg-4">
             <div class="card h-100">
               <div class="card-header table-warning fw-bold">Oficios judiciales</div>
               <div class="table-responsive">
                 <table class="table table-bordered text-center align-middle mb-0">
-                  <thead class="table-light">
-                    <tr><th>Año</th><th>Cantidad</th><th>Positivos</th><th>Con allanamiento</th></tr>
-                  </thead>
+                  <thead class="table-light"><tr><th>Año</th><th>Cantidad</th><th>Positivos</th><th>Con allanamiento</th></tr></thead>
                   <tbody>
-                    {% for fila in oficios_por_anio %}
-                    <tr>
-                      <th>{{ fila['anio'] }}</th>
-                      <td>{{ fila['cantidad'] }}</td>
-                      <td>{{ fila['positivos'] or 0 }}</td>
-                      <td>{{ fila['con_allanamiento'] or 0 }}</td>
-                    </tr>
-                    {% else %}
-                    <tr><td colspan="4" class="text-muted p-3">Sin datos</td></tr>
-                    {% endfor %}
-                    <tr class="table-warning fw-bold">
-                      <th>Total</th>
-                      <td>{{ totales['Oficios judiciales'] }}</td>
-                      <td>{{ oficios_positivos_total }}</td>
-                      <td>{{ oficios_allanamiento_total }}</td>
-                    </tr>
+                    {% for f in oficios %}
+                    <tr><th>{{ f['anio'] }}</th><td>{{ f['cantidad'] }}</td><td>{{ f['positivos'] or 0 }}</td><td>{{ f['con_allanamiento'] or 0 }}</td></tr>
+                    {% else %}<tr><td colspan="4" class="text-muted p-3">Sin datos</td></tr>{% endfor %}
+                    <tr class="table-warning fw-bold"><th>Total</th><td>{{ total_oficios }}</td><td>{{ positivos }}</td><td>{{ con_allanamiento }}</td></tr>
                   </tbody>
                 </table>
               </div>

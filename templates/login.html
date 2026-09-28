@@ -5,24 +5,19 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Iniciar sesión — DPAI</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="/static/style.css">
-    <link rel="icon" type="image/svg+xml" href="/static/favicon.svg">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link rel="icon" href="{{ url_for('static', filename='favicon.ico') }}" sizes="any">
   </head>
   <body>
     <div class="auth-page">
       <div class="auth-card">
         <div class="text-center mb-4">
-          <img src="{{ url_for('static', filename='logo_policia.png') }}" alt="Logo Policía de Salta" style="max-width: 190px;">
+          <img src="{{ url_for('static', filename='logo_policia.png') }}" alt="Logo Policía de Salta" style="max-width:190px;">
         </div>
         <div class="card">
           <div class="card-header">Registro de Actuaciones</div>
           <div class="card-body">
-            {% if error %}
-            <div class="alert alert-danger">{{ error }}</div>
-            {% endif %}
-            {% if success %}
-            <div class="alert alert-success">{{ success }}</div>
-            {% endif %}
+            {% if error %}<div class="alert alert-danger">{{ error }}</div>{% endif %}
             <form method="post">
               <div class="mb-2">
                 <label class="form-label">Usuario</label>
@@ -34,11 +29,6 @@
               </div>
               <button class="btn btn-primary w-100 mt-1">Entrar</button>
             </form>
-          </div>
-          <div class="card-footer text-center text-muted" style="background:#fff; font-size:.85rem;">
-            ¿No tenés cuenta? <a href="/registrar">Registrate acá</a>
-            <br><a href="/olvide-password">¿Olvidaste tu contraseña?</a>
-            <br><a href="/crear-admin">¿Primera vez? Creá el administrador</a>
           </div>
         </div>
       </div>

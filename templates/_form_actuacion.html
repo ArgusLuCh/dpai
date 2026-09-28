@@ -1,0 +1,28 @@
+{% set a = a or {} %}
+{% macro v(k) %}{{ a.get(k) or '' }}{% endmacro %}
+<div class="mb-2"><label class="form-label">Número de actuación</label>
+  <input name="numero_actuacion" class="form-control" value="{{ v('numero_actuacion') }}" required></div>
+<div class="mb-2"><label class="form-label">Carátula</label>
+  <input name="caratula" class="form-control" value="{{ v('caratula') }}" placeholder="Ej: Robo simple"></div>
+<div class="mb-2"><label class="form-label">Fecha del hecho</label>
+  <input type="date" name="fecha_hecho" class="form-control" value="{{ v('fecha_hecho') }}" required></div>
+<div class="mb-2"><label class="form-label">Fecha de registro</label>
+  <input type="date" name="fecha_registro" class="form-control" value="{{ a.get('fecha_registro') or hoy }}" required></div>
+<div class="mb-2"><label class="form-label">Fecha de avocamiento</label>
+  <input type="date" name="fecha_avocamiento" class="form-control" value="{{ v('fecha_avocamiento') }}"></div>
+<div class="mb-2"><label class="form-label">Dependencia</label>
+  <input name="dependencia" class="form-control" value="{{ v('dependencia') }}"></div>
+<div class="mb-2"><label class="form-label">Actuario</label>
+  <input name="actuario" class="form-control" value="{{ v('actuario') }}"></div>
+<div class="mb-2"><label class="form-label">Damnificado</label>
+  <input name="damnificado" class="form-control" value="{{ v('damnificado') }}" required></div>
+<div class="mb-2"><label class="form-label">Acusado</label>
+  <input name="acusado" class="form-control" value="{{ v('acusado') }}" required></div>
+<div class="mb-2"><label class="form-label">Relato</label>
+  <textarea name="relato" class="form-control" rows="3">{{ v('relato') }}</textarea></div>
+<div class="mb-2"><label class="form-label">Estado</label>
+  <select name="estado" class="form-select">
+    {% for k, t in statuses.items() %}
+    <option value="{{ k }}" {% if (a.get('estado') or 'en_investigacion') == k %}selected{% endif %}>{{ t }}</option>
+    {% endfor %}
+  </select></div>
