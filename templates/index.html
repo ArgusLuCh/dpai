@@ -36,7 +36,7 @@
               <td>{{ a['dependencia'] or '' }}</td>
               <td>{{ a['actuario'] or '' }}</td>
               <td>{{ a['damnificado'] }}<div class="text-muted small">Acusado: {{ a['acusado'] }}</div></td>
-              <td><small>{{ statuses[a['estado']] if a['estado'] in statuses else 'Sin asignar' }}</small></td>
+              <td><span class="estado estado-{{ a['estado'] }}">{{ statuses[a['estado']] if a['estado'] in statuses else 'Sin asignar' }}</span></td>
               <td class="text-end">
                 <a href="/edit/{{ a['id'] }}" class="btn btn-sm btn-outline-primary">Editar</a>
                 <form method="post" action="/delete/{{ a['id'] }}" class="d-inline" onsubmit="return confirm('¿Eliminar esta actuación?')">
